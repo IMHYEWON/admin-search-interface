@@ -3,7 +3,8 @@
 import { useCallback } from 'react';
 import { Layout, Typography } from 'antd';
 import { useRouter } from 'next/navigation';
-import SearchBar from './SearchBar';
+import { SearchBarWithApi } from './index';
+import { SearchItem, getStatusDisplayText, getStatusCssClass } from '@/types/product';
 
 const { Header: AntHeader } = Layout;
 const { Title } = Typography;
@@ -19,6 +20,42 @@ export default function Header() {
     router.push(`/categories/${categoryId}`);
   }, [router]);
 
+  // sections 정의 (products와 categories로 고정)
+  const sections = [
+    {
+      key: 'products',
+      title: 'Products',
+      color: '#1890ff',
+      itemType: 'product',
+      items: [], // SearchBarWithApi에서 채워짐
+      onSelect: handleProductSelect,
+      renderItem: (item: SearchItem) => (
+        <div className="product-item" style={{ paddingLeft: '16px' }}>
+          <span className="product-name">{item.name}</span>
+          <span className={`product-status ${getStatusCssClass(item.status)}`}>
+            {getStatusDisplayText(item.status)}
+          </span>
+        </div>
+      )
+    },
+    {
+      key: 'categories',
+      title: 'Categories',
+      color: '#52c41a',
+      itemType: 'category',
+      items: [], // SearchBarWithApi에서 채워짐
+      onSelect: handleCategorySelect,
+      renderItem: (item: SearchItem) => (
+        <div className="product-item" style={{ paddingLeft: '16px' }}>
+          <span className="product-name">{item.name}</span>
+          <span className={`product-status ${getStatusCssClass(item.status)}`}>
+            {item.metadata?.productCount || 0}개 상품
+          </span>
+        </div>
+      )
+    }
+  ];
+
   return (
     <AntHeader className="ant-layout-header">
       <div className="search-header">
@@ -26,11 +63,10 @@ export default function Header() {
           Admin Panel
         </Title>
         <div className="search-container">
-          <SearchBar
+          <SearchBarWithApi
             placeholder="상품명을 입력하세요..."
             size="large"
-            onProductSelect={handleProductSelect}
-            onCategorySelect={handleCategorySelect}
+            sections={sections}
           />
         </div>
       </div>
