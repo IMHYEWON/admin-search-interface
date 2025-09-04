@@ -5,6 +5,7 @@ import { SearchBar } from '@/components';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { checkApiHealth } from '@/lib/api';
+import { getStatusDisplayText, getStatusCssClass, SearchItem } from '@/types/product';
 
 const { Content } = Layout;
 const { Title, Paragraph, Text } = Typography;
@@ -33,13 +34,11 @@ export default function SearchBarDemo() {
         console.log('상품 선택됨:', id);
         router.push(`/products/${id}`);
       },
-      renderItem: (item: any) => (
+      renderItem: (item: SearchItem) => (
         <div className="product-item" style={{ paddingLeft: '16px' }}>
           <span className="product-name">{item.name}</span>
-          <span className={`product-status status-${item.status}`}>
-            {item.status === 'active' && '활성'}
-            {item.status === 'inactive' && '비활성'}
-            {item.status === 'discontinued' && '단종'}
+          <span className={`product-status ${getStatusCssClass(item.status)}`}>
+            {getStatusDisplayText(item.status)}
           </span>
         </div>
       )
