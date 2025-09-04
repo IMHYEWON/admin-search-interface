@@ -3,12 +3,78 @@
 import { Layout, Card, Typography, Space, Divider, Alert, Tag } from 'antd';
 import { SearchBar } from '@/components';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { checkApiHealth } from '@/lib/api';
+import { useEffect, useState, useCallback } from 'react';
+import { checkApiHealth, searchAll } from '@/lib/api';
 import { getStatusDisplayText, getStatusCssClass, SearchItem } from '@/types/product';
 
 const { Content } = Layout;
 const { Title, Paragraph, Text } = Typography;
+
+// SearchBar를 사용하는 컴포넌트 (API 호출 처리)
+function SearchBarWithApi({ sections, ...props }: any) {
+  const [searchResults, setSearchResults] = useState<SearchItem[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const handleSearch = useCallback(async (value: string) => {
+    if (!value.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const searchResult = await searchAll(value);
+      
+      // API 응답을 SearchItem[]로 변환
+      const allItems: SearchItem[] = [];
+      
+      // Products 변환
+      if (searchResult.productInfo?.products?.length > 0) {
+        const productItems = searchResult.productInfo.products.map((product: any) => ({
+          id: product.id,
+          name: product.name,
+          type: 'product',
+          status: product.status,
+          metadata: {}
+        }));
+        allItems.push(...productItems);
+      }
+      
+      // Categories 변환
+      if (searchResult.categoryInfo?.categories?.length > 0) {
+        const categoryItems = searchResult.categoryInfo.categories.map((category: any) => ({
+          id: category.id,
+          name: category.name,
+          type: 'category',
+          status: category.status,
+          metadata: { productCount: category.productCount }
+        }));
+        allItems.push(...categoryItems);
+      }
+      
+      setSearchResults(allItems);
+    } catch (error) {
+      console.error('검색 중 오류가 발생했습니다:', error);
+      setSearchResults([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // sections에 searchResults를 추가
+  const sectionsWithData = sections.map((section: any) => ({
+    ...section,
+    items: searchResults.filter(item => item.type === section.itemType)
+  }));
+
+  return (
+    <SearchBar
+      {...props}
+      sections={sectionsWithData}
+      onSearch={handleSearch}
+    />
+  );
+}
 
 export default function SearchBarDemo() {
   const router = useRouter();
@@ -30,6 +96,7 @@ export default function SearchBarDemo() {
       title: 'Products',
       color: '#1890ff',
       itemType: 'product',
+      items: [], // SearchBarWithApi에서 채워짐
       onSelect: (id: string) => {
         console.log('상품 선택됨:', id);
         router.push(`/products/${id}`);
@@ -41,25 +108,14 @@ export default function SearchBarDemo() {
             {getStatusDisplayText(item.status)}
           </span>
         </div>
-      ),
-      dataTransformer: (searchResult: any) => {
-        if (searchResult.productInfo?.products?.length > 0) {
-          return searchResult.productInfo.products.map((product: any) => ({
-            id: product.id,
-            name: product.name,
-            type: 'product',
-            status: product.status,
-            metadata: {}
-          }));
-        }
-        return [];
-      }
+      )
     },
     {
       key: 'categories',
       title: 'Categories',
       color: '#52c41a',
       itemType: 'category',
+      items: [], // SearchBarWithApi에서 채워짐
       onSelect: (id: string) => {
         console.log('카테고리 선택됨:', id);
         router.push(`/categories/${id}`);
@@ -71,19 +127,7 @@ export default function SearchBarDemo() {
             {item.metadata?.productCount || 0}개 상품
           </span>
         </div>
-      ),
-      dataTransformer: (searchResult: any) => {
-        if (searchResult.categoryInfo?.categories?.length > 0) {
-          return searchResult.categoryInfo.categories.map((category: any) => ({
-            id: category.id,
-            name: category.name,
-            type: 'category',
-            status: category.status,
-            metadata: { productCount: category.productCount }
-          }));
-        }
-        return [];
-      }
+      )
     }
   ];
 
@@ -125,7 +169,7 @@ export default function SearchBarDemo() {
               <Paragraph>
                 <Text code>{'<SearchBar sections={defaultSections} />'}</Text> - 기본 설정으로 사용
               </Paragraph>
-              <SearchBar sections={defaultSections} />
+              <SearchBarWithApi sections={defaultSections} />
             </div>
 
             <div>
@@ -133,7 +177,7 @@ export default function SearchBarDemo() {
               <Paragraph>
                 <Text code>{'<SearchBar sections={defaultSections} placeholder="검색어를 입력하세요..." />'}</Text>
               </Paragraph>
-              <SearchBar sections={defaultSections} placeholder="검색어를 입력하세요..." />
+              <SearchBarWithApi sections={defaultSections} placeholder="검색어를 입력하세요..." />
             </div>
 
             <div>
@@ -141,7 +185,7 @@ export default function SearchBarDemo() {
               <Paragraph>
                 <Text code>{'<SearchBar sections={defaultSections} size="small" />'}</Text>
               </Paragraph>
-              <SearchBar sections={defaultSections} size="small" />
+              <SearchBarWithApi sections={defaultSections} size="small" />
             </div>
 
             <div>
@@ -149,7 +193,7 @@ export default function SearchBarDemo() {
               <Paragraph>
                 <Text code>{'<SearchBar sections={defaultSections} size="middle" />'}</Text>
               </Paragraph>
-              <SearchBar sections={defaultSections} size="middle" />
+              <SearchBarWithApi sections={defaultSections} size="middle" />
             </div>
 
             <div>
@@ -157,10 +201,10 @@ export default function SearchBarDemo() {
               <Paragraph>
                 <Text code>{'<SearchBar sections={defaultSections} onItemSelect={handleItemSelect} />'}</Text>
               </Paragraph>
-              <SearchBar
+              <SearchBarWithApi
                 sections={defaultSections}
                 placeholder="상품이나 카테고리를 검색해보세요..."
-                onItemSelect={(itemId, itemType) => {
+                onItemSelect={(itemId: string, itemType: string) => {
                   console.log(`${itemType} 선택됨:`, itemId);
                   if (itemType === 'product') {
                     router.push(`/products/${itemId}`);
@@ -176,7 +220,7 @@ export default function SearchBarDemo() {
               <Paragraph>
                 <Text code>{'<SearchBar sections={defaultSections} style={{ width: 300, margin: "0 auto" }} />'}</Text>
               </Paragraph>
-              <SearchBar 
+              <SearchBarWithApi 
                 sections={defaultSections}
                 style={{ width: 300, margin: "0 auto" }}
                 placeholder="중앙 정렬된 검색바"
@@ -204,21 +248,14 @@ export default function SearchBarDemo() {
                     title: 'Products',
                     color: '#1890ff',
                     itemType: 'product',
+                    items: [
+                      { id: '1', name: 'iPhone 15', type: 'product', status: 'active' as any, metadata: {} },
+                      { id: '2', name: 'Samsung Galaxy S24', type: 'product', status: 'active' as any, metadata: {} },
+                      { id: '3', name: 'MacBook Pro', type: 'product', status: 'active' as any, metadata: {} }
+                    ],
                     onSelect: (id) => {
                       console.log('상품 선택됨:', id);
                       router.push(`/products/${id}`);
-                    },
-                    dataTransformer: (searchResult: any) => {
-                      if (searchResult.productInfo?.products?.length > 0) {
-                        return searchResult.productInfo.products.map((product: any) => ({
-                          id: product.id,
-                          name: product.name,
-                          type: 'product',
-                          status: product.status,
-                          metadata: {}
-                        }));
-                      }
-                      return [];
                     }
                   }
                 ]}
@@ -238,21 +275,14 @@ export default function SearchBarDemo() {
                     title: 'Categories',
                     color: '#52c41a',
                     itemType: 'category',
+                    items: [
+                      { id: 'cat1', name: '스마트폰', type: 'category', status: 'active' as any, metadata: { productCount: 15 } },
+                      { id: 'cat2', name: '노트북', type: 'category', status: 'active' as any, metadata: { productCount: 8 } },
+                      { id: 'cat3', name: '태블릿', type: 'category', status: 'active' as any, metadata: { productCount: 12 } }
+                    ],
                     onSelect: (id) => {
                       console.log('카테고리 선택됨:', id);
                       router.push(`/categories/${id}`);
-                    },
-                    dataTransformer: (searchResult: any) => {
-                      if (searchResult.categoryInfo?.categories?.length > 0) {
-                        return searchResult.categoryInfo.categories.map((category: any) => ({
-                          id: category.id,
-                          name: category.name,
-                          type: 'category',
-                          status: category.status,
-                          metadata: { productCount: category.productCount }
-                        }));
-                      }
-                      return [];
                     }
                   }
                 ]}
@@ -272,6 +302,11 @@ export default function SearchBarDemo() {
                     title: 'Events',
                     color: '#722ed1',
                     itemType: 'event',
+                    items: [
+                      { id: 'event1', name: '신년 세일', type: 'event', status: 'active' as any, metadata: { date: '2024-01-01' } },
+                      { id: 'event2', name: '여름 대축제', type: 'event', status: 'active' as any, metadata: { date: '2024-07-15' } },
+                      { id: 'event3', name: '블랙프라이데이', type: 'event', status: 'active' as any, metadata: { date: '2024-11-24' } }
+                    ],
                     onSelect: (id) => {
                       console.log('이벤트 선택됨:', id);
                       alert(`이벤트 ${id} 선택됨!`);
@@ -289,22 +324,7 @@ export default function SearchBarDemo() {
                           {item.metadata?.date || '2024-01-01'}
                         </span>
                       </div>
-                    ),
-                    dataTransformer: (searchResult: any) => {
-                      // Mock 데이터 - 실제로는 API에서 이벤트 데이터를 가져와야 함
-                      const mockEvents = [
-                        { id: 'event1', name: '신년 세일', date: '2024-01-01' },
-                        { id: 'event2', name: '여름 대축제', date: '2024-07-15' },
-                        { id: 'event3', name: '블랙프라이데이', date: '2024-11-24' }
-                      ];
-                      return mockEvents.map(event => ({
-                        id: event.id,
-                        name: event.name,
-                        type: 'event',
-                        status: 'active' as any,
-                        metadata: { date: event.date }
-                      }));
-                    }
+                    )
                   }
                 ]}
                 placeholder="이벤트명을 입력하세요..."
@@ -323,6 +343,11 @@ export default function SearchBarDemo() {
                     title: 'Users',
                     color: '#fa8c16',
                     itemType: 'user',
+                    items: [
+                      { id: 'user1', name: '김철수', type: 'user', status: 'active' as any, metadata: { role: 'Admin' } },
+                      { id: 'user2', name: '이영희', type: 'user', status: 'active' as any, metadata: { role: 'User' } },
+                      { id: 'user3', name: '박민수', type: 'user', status: 'active' as any, metadata: { role: 'Moderator' } }
+                    ],
                     onSelect: (id) => {
                       console.log('사용자 선택됨:', id);
                       alert(`사용자 ${id} 선택됨!`);
@@ -341,22 +366,7 @@ export default function SearchBarDemo() {
                           {item.metadata?.role || 'User'}
                         </span>
                       </div>
-                    ),
-                    dataTransformer: (searchResult: any) => {
-                      // Mock 데이터 - 실제로는 API에서 사용자 데이터를 가져와야 함
-                      const mockUsers = [
-                        { id: 'user1', name: '김철수', role: 'Admin' },
-                        { id: 'user2', name: '이영희', role: 'User' },
-                        { id: 'user3', name: '박민수', role: 'Moderator' }
-                      ];
-                      return mockUsers.map(user => ({
-                        id: user.id,
-                        name: user.name,
-                        type: 'user',
-                        status: 'active' as any,
-                        metadata: { role: user.role }
-                      }));
-                    }
+                    )
                   }
                 ]}
                 placeholder="사용자명을 입력하세요..."
@@ -388,9 +398,9 @@ export default function SearchBarDemo() {
               <li><Text strong>title</Text>: 섹션 제목 (예: &apos;Products&apos;, &apos;Categories&apos;)</li>
               <li><Text strong>color</Text>: 섹션 색상 (예: &apos;#1890ff&apos;, &apos;#52c41a&apos;)</li>
               <li><Text strong>itemType</Text>: 아이템 타입 (예: &apos;product&apos;, &apos;category&apos;, &apos;event&apos;)</li>
+              <li><Text strong>items</Text>: 검색 결과 아이템들 (SearchItem[]) - <Text type="danger">필수</Text></li>
               <li><Text strong>onSelect</Text>: 섹션별 선택 콜백 함수</li>
               <li><Text strong>renderItem</Text>: 커스텀 아이템 렌더링 함수</li>
-              <li><Text strong>dataTransformer</Text>: API 응답을 SearchItem[]로 변환하는 함수 - <Text type="danger">필수</Text></li>
             </ul>
           </Card>
         </Card>
