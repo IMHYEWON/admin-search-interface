@@ -1,14 +1,26 @@
 'use client';
 
-import { Layout, Card, Typography, Space, Divider } from 'antd';
+import { Layout, Card, Typography, Space, Divider, Alert, Tag } from 'antd';
 import { SearchBar } from '@/components';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { checkApiHealth } from '@/lib/api';
 
 const { Content } = Layout;
 const { Title, Paragraph, Text } = Typography;
 
 export default function SearchBarDemo() {
   const router = useRouter();
+  const [apiStatus, setApiStatus] = useState<'checking' | 'connected' | 'disconnected'>('checking');
+
+  useEffect(() => {
+    const checkApi = async () => {
+      const isConnected = await checkApiHealth();
+      setApiStatus(isConnected ? 'connected' : 'disconnected');
+    };
+    
+    checkApi();
+  }, []);
 
   const handleProductSelect = (productId: string) => {
     console.log('Product selected:', productId);
@@ -30,6 +42,24 @@ export default function SearchBarDemo() {
             SearchBar 컴포넌트는 독립적으로 사용할 수 있는 재사용 가능한 컴포넌트입니다.
             다양한 props를 통해 커스터마이징할 수 있습니다.
           </Paragraph>
+
+          {/* API 상태 표시 */}
+          <div style={{ marginBottom: '16px' }}>
+            <Text strong>API 상태: </Text>
+            {apiStatus === 'checking' && <Tag color="processing">확인 중...</Tag>}
+            {apiStatus === 'connected' && <Tag color="success">API 연결됨</Tag>}
+            {apiStatus === 'disconnected' && <Tag color="warning">API 연결 실패 (Mock 데이터 사용)</Tag>}
+          </div>
+
+          {apiStatus === 'disconnected' && (
+            <Alert
+              message="API 서버 연결 실패"
+              description="API 서버(localhost:8080)에 연결할 수 없어 Mock 데이터를 사용합니다. 실제 API 서버를 실행하면 실제 데이터를 볼 수 있습니다."
+              type="warning"
+              showIcon
+              style={{ marginBottom: '16px' }}
+            />
+          )}
 
           <Divider />
 

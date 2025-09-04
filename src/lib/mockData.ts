@@ -1,6 +1,6 @@
 import { Product, Category, SearchResponse } from '@/types/product';
 
-// 모킹된 상품 데이터 (더 풍부한 테스트 데이터)
+// 모킹된 상품 데이터 (fallback용)
 export const mockProducts: Product[] = [
   { id: '1', name: 'iPhone 15 Pro', status: 'active' },
   { id: '2', name: 'Samsung Galaxy S24', status: 'active' },
@@ -54,7 +54,7 @@ export const mockProducts: Product[] = [
   { id: '50', name: 'SSD 1TB', status: 'active' },
 ];
 
-// 모킹된 카테고리 데이터
+// 모킹된 카테고리 데이터 (fallback용)
 export const mockCategories: Category[] = [
   { id: 'cat1', name: 'Electronics', status: 'active', productCount: 25 },
   { id: 'cat2', name: 'Smartphones', status: 'active', productCount: 8 },
@@ -78,8 +78,8 @@ export const mockCategories: Category[] = [
   { id: 'cat20', name: 'Travel', status: 'active', productCount: 3 },
 ];
 
-// 통합 검색 함수 (상품 + 카테고리)
-export const searchAll = async (query: string): Promise<SearchResponse> => {
+// Mock 데이터를 사용한 검색 함수 (fallback용)
+export const searchAllMock = async (query: string): Promise<SearchResponse> => {
   // 실제 API 호출을 시뮬레이션하기 위한 지연
   await new Promise(resolve => setTimeout(resolve, 300));
   
@@ -111,8 +111,27 @@ export const searchAll = async (query: string): Promise<SearchResponse> => {
   };
 };
 
-// 기존 상품 검색 함수 (하위 호환성을 위해 유지)
-export const searchProducts = async (query: string): Promise<Product[]> => {
-  const result = await searchAll(query);
-  return result.productInfo.products;
+// Mock 데이터를 사용한 상품 조회 함수 (fallback용)
+export const getProductByIdMock = async (id: string): Promise<Product | null> => {
+  await new Promise(resolve => setTimeout(resolve, 300));
+  return mockProducts.find(p => p.id === id) || null;
+};
+
+// Mock 데이터를 사용한 카테고리 조회 함수 (fallback용)
+export const getCategoryByIdMock = async (id: string): Promise<Category | null> => {
+  await new Promise(resolve => setTimeout(resolve, 300));
+  return mockCategories.find(c => c.id === id) || null;
+};
+
+// Mock 데이터를 사용한 카테고리별 상품 조회 함수 (fallback용)
+export const getProductsByCategoryMock = async (categoryId: string): Promise<Product[]> => {
+  await new Promise(resolve => setTimeout(resolve, 300));
+  const category = mockCategories.find(c => c.id === categoryId);
+  if (!category) return [];
+  
+  // 간단한 카테고리 매칭 로직
+  return mockProducts.filter(product => 
+    product.name.toLowerCase().includes(category.name.toLowerCase()) ||
+    category.name.toLowerCase().includes(product.name.toLowerCase())
+  ).slice(0, 10);
 };

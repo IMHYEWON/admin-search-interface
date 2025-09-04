@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Header from '@/components/Header';
 import { Product } from '@/types/product';
-import { mockProducts } from '@/lib/mockData';
+import { getProductById } from '@/lib/api';
 
 const { Content } = Layout;
 const { Title, Paragraph } = Typography;
@@ -23,14 +23,17 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 실제 API 호출을 시뮬레이션
     const fetchProduct = async () => {
       setLoading(true);
-      await new Promise(resolve => setTimeout(resolve, 500)); // API 지연 시뮬레이션
-      
-      const foundProduct = mockProducts.find(p => p.id === params.id);
-      setProduct(foundProduct || null);
-      setLoading(false);
+      try {
+        const foundProduct = await getProductById(params.id);
+        setProduct(foundProduct);
+      } catch (error) {
+        console.error('상품 조회 중 오류가 발생했습니다:', error);
+        setProduct(null);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchProduct();
