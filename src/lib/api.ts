@@ -1,5 +1,11 @@
 import axios from 'axios';
 import { Product, Category, SearchResponse } from '@/types/product';
+import { 
+  searchAllMock, 
+  getProductByIdMock, 
+  getCategoryByIdMock, 
+  getProductsByCategoryMock 
+} from './mockData';
 
 // API 기본 설정
 const API_BASE_URL = 'http://localhost:8080/api/v1';
@@ -38,7 +44,7 @@ interface ApiSearchResponse {
   };
 }
 
-// 실제 API 호출 함수
+// 실제 API 호출 함수 (fallback 포함)
 export const searchAll = async (query: string): Promise<SearchResponse> => {
   try {
     if (!query.trim()) {
@@ -79,13 +85,10 @@ export const searchAll = async (query: string): Promise<SearchResponse> => {
       }
     };
   } catch (error) {
-    console.error('API 호출 중 오류가 발생했습니다:', error);
+    console.warn('API 호출 실패, Mock 데이터를 사용합니다:', error);
     
-    // API 오류 시 빈 결과 반환
-    return {
-      productInfo: { products: [], total: 0 },
-      categoryInfo: { categories: [], total: 0 }
-    };
+    // API 오류 시 Mock 데이터 사용
+    return await searchAllMock(query);
   }
 };
 
@@ -95,7 +98,7 @@ export const searchProducts = async (query: string): Promise<Product[]> => {
   return result.productInfo.products;
 };
 
-// 개별 상품 조회 함수
+// 개별 상품 조회 함수 (fallback 포함)
 export const getProductById = async (id: string): Promise<Product | null> => {
   try {
     const response = await apiClient.get<ApiProduct>(`/products/${id}`);
@@ -106,12 +109,12 @@ export const getProductById = async (id: string): Promise<Product | null> => {
       status: response.data.status
     };
   } catch (error) {
-    console.error('상품 조회 중 오류가 발생했습니다:', error);
-    return null;
+    console.warn('API 호출 실패, Mock 데이터를 사용합니다:', error);
+    return await getProductByIdMock(id);
   }
 };
 
-// 개별 카테고리 조회 함수
+// 개별 카테고리 조회 함수 (fallback 포함)
 export const getCategoryById = async (id: string): Promise<Category | null> => {
   try {
     const response = await apiClient.get<ApiCategory>(`/categories/${id}`);
@@ -123,12 +126,12 @@ export const getCategoryById = async (id: string): Promise<Category | null> => {
       productCount: response.data.productCount
     };
   } catch (error) {
-    console.error('카테고리 조회 중 오류가 발생했습니다:', error);
-    return null;
+    console.warn('API 호출 실패, Mock 데이터를 사용합니다:', error);
+    return await getCategoryByIdMock(id);
   }
 };
 
-// 카테고리별 상품 목록 조회 함수
+// 카테고리별 상품 목록 조회 함수 (fallback 포함)
 export const getProductsByCategory = async (categoryId: string): Promise<Product[]> => {
   try {
     const response = await apiClient.get<ApiProduct[]>(`/categories/${categoryId}/products`);
@@ -139,8 +142,8 @@ export const getProductsByCategory = async (categoryId: string): Promise<Product
       status: apiProduct.status
     }));
   } catch (error) {
-    console.error('카테고리별 상품 조회 중 오류가 발생했습니다:', error);
-    return [];
+    console.warn('API 호출 실패, Mock 데이터를 사용합니다:', error);
+    return await getProductsByCategoryMock(categoryId);
   }
 };
 
