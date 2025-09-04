@@ -69,6 +69,12 @@ export default function SearchBar({
       const searchTerm = value.toLowerCase();
 
       // 범용 섹션 처리 로직
+      if (!sections || !Array.isArray(sections)) {
+        setOptions([]);
+        setLoading(false);
+        return;
+      }
+
       sections.forEach((section, sectionIndex) => {
         // 섹션의 items에서 검색어와 일치하는 항목들 필터링
         const filteredItems = section.items.filter(item => 

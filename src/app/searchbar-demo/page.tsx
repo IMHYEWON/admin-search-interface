@@ -62,6 +62,10 @@ function SearchBarWithApi({ sections, ...props }: any) {
   }, []);
 
   // sections에 searchResults를 추가
+  if (!sections || !Array.isArray(sections)) {
+    return <div>No sections provided</div>;
+  }
+
   const sectionsWithData = sections.map((section: any) => ({
     ...section,
     items: searchResults.filter(item => item.type === section.itemType)
