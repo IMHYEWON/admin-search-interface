@@ -4,6 +4,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { AutoComplete, Input } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { Product, Category, SearchItem, GenericSearchResponse, getStatusDisplayText } from '@/types/product';
+import { processSearchText } from '@/lib/hangulToEnglish';
 
 // 검색 섹션 설정 인터페이스
 export interface SearchSectionConfig {
@@ -72,19 +73,22 @@ export default function SearchBar({
       return;
     }
 
+    // 한글을 영문으로 변환
+    const processedValue = processSearchText(value);
+
     // 300ms 디바운스 적용
     debounceRef.current = setTimeout(() => {
       setLoading(true);
       
       // 외부에서 검색을 처리하는 경우
       if (onSearch) {
-        onSearch(value);
+        onSearch(processedValue);
         setLoading(false);
         return;
       }
       
       const newOptions: { value: string; label: React.ReactNode }[] = [];
-      const searchTerm = value.toLowerCase();
+      const searchTerm = processedValue.toLowerCase();
 
       // 범용 섹션 처리 로직
       if (!sections || !Array.isArray(sections)) {

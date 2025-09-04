@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from 'react';
 import SearchBar from './SearchBar';
 import { searchAll } from '@/lib/api';
 import { SearchItem, getStatusDisplayText, getStatusCssClass } from '@/types/product';
+import { processSearchText } from '@/lib/hangulToEnglish';
 
 interface SearchBarWithApiProps {
   sections: any[];
@@ -26,7 +27,9 @@ export default function SearchBarWithApi({ sections, ...props }: SearchBarWithAp
       return;
     }
 
-    setSearchValue(value);
+    // 한글을 영문으로 변환
+    const processedValue = processSearchText(value);
+    setSearchValue(processedValue);
   }, []);
 
   // searchValue가 변경될 때마다 API 호출
