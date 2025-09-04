@@ -1,14 +1,12 @@
 'use client';
 
-import { Layout, Card, Typography, Tag, Button, Spin, List } from 'antd';
+import { Card, Typography, Tag, Button, Spin, List } from 'antd';
 import { ArrowLeftOutlined, ShoppingOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import Header from '@/components/Header';
 import { Category, Product } from '@/types/product';
 import { getCategoryById, getProductsByCategory } from '@/lib/api';
 
-const { Content } = Layout;
 const { Title, Paragraph } = Typography;
 
 interface CategoryDetailPageProps {
@@ -77,36 +75,28 @@ export default function CategoryDetailPage({ params }: CategoryDetailPageProps) 
 
   if (loading) {
     return (
-      <Layout style={{ minHeight: '100vh' }}>
-        <Header />
-        <Content style={{ padding: '24px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <Spin size="large" />
-        </Content>
-      </Layout>
+      <div style={{ padding: '24px', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+        <Spin size="large" />
+      </div>
     );
   }
 
   if (!category) {
     return (
-      <Layout style={{ minHeight: '100vh' }}>
-        <Header />
-        <Content style={{ padding: '24px' }}>
-          <Card>
-            <Title level={2}>카테고리를 찾을 수 없습니다</Title>
-            <Paragraph>요청하신 카테고리가 존재하지 않거나 삭제되었습니다.</Paragraph>
-            <Button type="primary" onClick={() => router.push('/')}>
-              홈으로 돌아가기
-            </Button>
-          </Card>
-        </Content>
-      </Layout>
+      <div style={{ padding: '24px' }}>
+        <Card>
+          <Title level={2}>카테고리를 찾을 수 없습니다</Title>
+          <Paragraph>요청하신 카테고리가 존재하지 않거나 삭제되었습니다.</Paragraph>
+          <Button type="primary" onClick={() => router.push('/')}>
+            홈으로 돌아가기
+          </Button>
+        </Card>
+      </div>
     );
   }
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Header />
-      <Content style={{ padding: '24px' }}>
+    <div style={{ padding: '24px' }}>
         <Card>
           <div style={{ marginBottom: '16px' }}>
             <Button 
@@ -180,7 +170,6 @@ export default function CategoryDetailPage({ params }: CategoryDetailPageProps) 
             )}
           </div>
         </Card>
-      </Content>
-    </Layout>
+    </div>
   );
 }

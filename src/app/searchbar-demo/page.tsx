@@ -1,13 +1,12 @@
 'use client';
 
-import { Layout, Card, Typography, Space, Divider, Alert, Tag } from 'antd';
+import { Card, Typography, Space, Divider, Alert, Tag } from 'antd';
 import { SearchBar, SearchBarWithApi } from '@/components';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
 import { checkApiHealth, searchAll } from '@/lib/api';
 import { getStatusDisplayText, getStatusCssClass, SearchItem } from '@/types/product';
 
-const { Content } = Layout;
 const { Title, Paragraph, Text } = Typography;
 
 
@@ -68,8 +67,7 @@ export default function SearchBarDemo() {
 
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Content style={{ padding: '24px', background: '#f5f5f5' }}>
+    <div style={{ padding: '24px', background: '#f5f5f5' }}>
         <Card>
           <Title level={2}>SearchBar 컴포넌트 사용 예시</Title>
           
@@ -339,7 +337,6 @@ export default function SearchBarDemo() {
             </ul>
           </Card>
         </Card>
-      </Content>
-    </Layout>
+    </div>
   );
 }

@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import { ConfigProvider } from 'antd'
+import { ConfigProvider, Layout } from 'antd'
 import koKR from 'antd/locale/ko_KR'
+import ClientLayout from '@/components/ClientLayout'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -20,7 +21,9 @@ export default function RootLayout({
     <html lang="ko">
       <body className={inter.className}>
         <ConfigProvider locale={koKR}>
-          {children}
+          <ClientLayout>
+            {children}
+          </ClientLayout>
         </ConfigProvider>
       </body>
     </html>

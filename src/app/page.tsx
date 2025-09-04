@@ -1,6 +1,6 @@
 'use client';
 
-import { Layout, Card, Row, Col, Typography, Button, Space, Divider } from 'antd';
+import { Card, Row, Col, Typography, Button, Space, Divider } from 'antd';
 import { 
   SearchOutlined, 
   ExperimentOutlined, 
@@ -8,10 +8,8 @@ import {
   AppstoreOutlined,
   HomeOutlined
 } from '@ant-design/icons';
-import Header from '@/components/Header';
 import { useRouter } from 'next/navigation';
 
-const { Content } = Layout;
 const { Title, Paragraph, Text } = Typography;
 
 export default function Home() {
@@ -45,9 +43,7 @@ export default function Home() {
   };
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Header />
-      <Content style={{ padding: '24px', background: '#f5f5f5' }}>
+    <div style={{ padding: '24px', background: '#f5f5f5' }}>
         <div style={{ 
           background: '#fff', 
           padding: '24px', 
@@ -148,7 +144,6 @@ export default function Home() {
             </ul>
           </Card>
         </Card>
-      </Content>
-    </Layout>
+    </div>
   );
 }
