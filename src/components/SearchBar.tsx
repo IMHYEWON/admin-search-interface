@@ -25,6 +25,8 @@ export interface SearchBarProps {
   // 필수 설정
   sections: SearchSectionConfig[]; // 검색 섹션 설정 (필수)
   onItemSelect?: (itemId: string, itemType: string) => void; // 범용 선택 콜백
+  onSearch?: (value: string) => void; // 검색 콜백 (외부에서 검색 처리)
+  externalOptions?: { value: string; label: React.ReactNode }[]; // 외부에서 제공하는 옵션들
 }
 
 export default function SearchBar({
@@ -35,11 +37,16 @@ export default function SearchBar({
   
   // 필수 props
   sections,
-  onItemSelect
+  onItemSelect,
+  onSearch,
+  externalOptions
 }: SearchBarProps) {
   const [options, setOptions] = useState<{ value: string; label: React.ReactNode }[]>([]);
   const [loading, setLoading] = useState(false);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  // externalOptions가 있으면 이를 사용
+  const displayOptions = externalOptions || options;
 
   // 컴포넌트 언마운트 시 디바운스 타이머 정리
   useEffect(() => {
@@ -64,6 +71,13 @@ export default function SearchBar({
     // 300ms 디바운스 적용
     debounceRef.current = setTimeout(() => {
       setLoading(true);
+      
+      // 외부에서 검색을 처리하는 경우
+      if (onSearch) {
+        onSearch(value);
+        setLoading(false);
+        return;
+      }
       
       const newOptions: { value: string; label: React.ReactNode }[] = [];
       const searchTerm = value.toLowerCase();
@@ -151,7 +165,7 @@ export default function SearchBar({
 
   return (
     <AutoComplete
-      options={options}
+      options={displayOptions}
       onSearch={handleSearch}
       onSelect={handleSelect}
       style={{ width: '100%', ...style }}

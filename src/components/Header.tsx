@@ -12,12 +12,12 @@ const { Title } = Typography;
 export default function Header() {
   const router = useRouter();
 
-  const handleProductSelect = useCallback((productId: string) => {
-    router.push(`/products/${productId}`);
-  }, [router]);
-
-  const handleCategorySelect = useCallback((categoryId: string) => {
-    router.push(`/categories/${categoryId}`);
+  const handleItemSelect = useCallback((itemId: string, itemType: string) => {
+    if (itemType === 'product') {
+      router.push(`/products/${itemId}`);
+    } else if (itemType === 'category') {
+      router.push(`/categories/${itemId}`);
+    }
   }, [router]);
 
   // sections 정의 (products와 categories로 고정)
@@ -28,7 +28,6 @@ export default function Header() {
       color: '#1890ff',
       itemType: 'product',
       items: [], // SearchBarWithApi에서 채워짐
-      onSelect: handleProductSelect,
       renderItem: (item: SearchItem) => (
         <div className="product-item" style={{ paddingLeft: '16px' }}>
           <span className="product-name">{item.name}</span>
@@ -44,7 +43,6 @@ export default function Header() {
       color: '#52c41a',
       itemType: 'category',
       items: [], // SearchBarWithApi에서 채워짐
-      onSelect: handleCategorySelect,
       renderItem: (item: SearchItem) => (
         <div className="product-item" style={{ paddingLeft: '16px' }}>
           <span className="product-name">{item.name}</span>
@@ -67,6 +65,7 @@ export default function Header() {
             placeholder="상품명을 입력하세요..."
             size="large"
             sections={sections}
+            onItemSelect={handleItemSelect}
           />
         </div>
       </div>
