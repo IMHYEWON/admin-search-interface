@@ -22,29 +22,48 @@ export default function SearchBarDemo() {
     checkApi();
   }, []);
 
-  /**
-   * 상품이 선택되었을 때 호출되는 핸들러
-   * SearchBar 컴포넌트의 onProductSelect 콜백으로 전달됨
-   * @param productId - 선택된 상품의 ID (예: "1", "2", "3")
-   */
-  const handleProductSelect = (productId: string) => {
-    console.log('상품 선택됨:', productId);
-    // Next.js router를 사용하여 상품 상세 페이지로 이동
-    // URL: /products/[id] → /products/1, /products/2 등
-    router.push(`/products/${productId}`);
-  };
+  // 기본 섹션 설정 (상품 + 카테고리)
+  const defaultSections = [
+    {
+      key: 'products',
+      title: 'Products',
+      color: '#1890ff',
+      itemType: 'product',
+      onSelect: (id: string) => {
+        console.log('상품 선택됨:', id);
+        router.push(`/products/${id}`);
+      },
+      renderItem: (item: any) => (
+        <div className="product-item" style={{ paddingLeft: '16px' }}>
+          <span className="product-name">{item.name}</span>
+          <span className={`product-status status-${item.status}`}>
+            {item.status === 'active' && '활성'}
+            {item.status === 'inactive' && '비활성'}
+            {item.status === 'discontinued' && '단종'}
+          </span>
+        </div>
+      )
+    },
+    {
+      key: 'categories',
+      title: 'Categories',
+      color: '#52c41a',
+      itemType: 'category',
+      onSelect: (id: string) => {
+        console.log('카테고리 선택됨:', id);
+        router.push(`/categories/${id}`);
+      },
+      renderItem: (item: any) => (
+        <div className="product-item" style={{ paddingLeft: '16px' }}>
+          <span className="product-name">{item.name}</span>
+          <span className={`product-status status-${item.status}`}>
+            {item.metadata?.productCount || 0}개 상품
+          </span>
+        </div>
+      )
+    }
+  ];
 
-  /**
-   * 카테고리가 선택되었을 때 호출되는 핸들러
-   * SearchBar 컴포넌트의 onCategorySelect 콜백으로 전달됨
-   * @param categoryId - 선택된 카테고리의 ID (예: "cat1", "cat2", "cat3")
-   */
-  const handleCategorySelect = (categoryId: string) => {
-    console.log('카테고리 선택됨:', categoryId);
-    // Next.js router를 사용하여 카테고리 상세 페이지로 이동
-    // URL: /categories/[id] → /categories/cat1, /categories/cat2 등
-    router.push(`/categories/${categoryId}`);
-  };
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -81,53 +100,61 @@ export default function SearchBarDemo() {
             <div>
               <Title level={4}>기본 사용법</Title>
               <Paragraph>
-                <Text code>{'<SearchBar />'}</Text> - 기본 설정으로 사용
+                <Text code>{'<SearchBar sections={defaultSections} />'}</Text> - 기본 설정으로 사용
               </Paragraph>
-              <SearchBar />
+              <SearchBar sections={defaultSections} />
             </div>
 
             <div>
               <Title level={4}>커스텀 플레이스홀더</Title>
               <Paragraph>
-                <Text code>{'<SearchBar placeholder="검색어를 입력하세요..." />'}</Text>
+                <Text code>{'<SearchBar sections={defaultSections} placeholder="검색어를 입력하세요..." />'}</Text>
               </Paragraph>
-              <SearchBar placeholder="검색어를 입력하세요..." />
+              <SearchBar sections={defaultSections} placeholder="검색어를 입력하세요..." />
             </div>
 
             <div>
               <Title level={4}>작은 크기</Title>
               <Paragraph>
-                <Text code>{'<SearchBar size="small" />'}</Text>
+                <Text code>{'<SearchBar sections={defaultSections} size="small" />'}</Text>
               </Paragraph>
-              <SearchBar size="small" />
+              <SearchBar sections={defaultSections} size="small" />
             </div>
 
             <div>
               <Title level={4}>중간 크기</Title>
               <Paragraph>
-                <Text code>{'<SearchBar size="middle" />'}</Text>
+                <Text code>{'<SearchBar sections={defaultSections} size="middle" />'}</Text>
               </Paragraph>
-              <SearchBar size="middle" />
+              <SearchBar sections={defaultSections} size="middle" />
             </div>
 
             <div>
-              <Title level={4}>콜백 함수와 함께 사용</Title>
+              <Title level={4}>범용 콜백 사용법</Title>
               <Paragraph>
-                상품 선택 시와 카테고리 선택 시 각각 다른 동작을 수행할 수 있습니다.
+                <Text code>{'<SearchBar sections={defaultSections} onItemSelect={handleItemSelect} />'}</Text>
               </Paragraph>
               <SearchBar
+                sections={defaultSections}
                 placeholder="상품이나 카테고리를 검색해보세요..."
-                onProductSelect={handleProductSelect}
-                onCategorySelect={handleCategorySelect}
+                onItemSelect={(itemId, itemType) => {
+                  console.log(`${itemType} 선택됨:`, itemId);
+                  if (itemType === 'product') {
+                    router.push(`/products/${itemId}`);
+                  } else if (itemType === 'category') {
+                    router.push(`/categories/${itemId}`);
+                  }
+                }}
               />
             </div>
 
             <div>
               <Title level={4}>커스텀 스타일</Title>
               <Paragraph>
-                <Text code>{'<SearchBar style={{ width: 300, margin: "0 auto" }} />'}</Text>
+                <Text code>{'<SearchBar sections={defaultSections} style={{ width: 300, margin: "0 auto" }} />'}</Text>
               </Paragraph>
               <SearchBar 
+                sections={defaultSections}
                 style={{ width: 300, margin: "0 auto" }}
                 placeholder="중앙 정렬된 검색바"
               />
@@ -272,16 +299,10 @@ export default function SearchBarDemo() {
               <li><Text strong>className</Text>: CSS 클래스명</li>
             </ul>
             
-            <Title level={5}>기존 호환성 Props (Deprecated)</Title>
+            <Title level={5}>필수 Props</Title>
             <ul>
-              <li><Text strong>onProductSelect</Text>: 상품 선택 시 호출될 콜백 함수</li>
-              <li><Text strong>onCategorySelect</Text>: 카테고리 선택 시 호출될 콜백 함수</li>
-            </ul>
-            
-            <Title level={5}>새로운 범용 Props</Title>
-            <ul>
-              <li><Text strong>sections</Text>: 검색 섹션 설정 배열 (SearchSectionConfig[])</li>
-              <li><Text strong>onItemSelect</Text>: 범용 아이템 선택 콜백 (itemId, itemType)</li>
+              <li><Text strong>sections</Text>: 검색 섹션 설정 배열 (SearchSectionConfig[]) - <Text type="danger">필수</Text></li>
+              <li><Text strong>onItemSelect</Text>: 범용 아이템 선택 콜백 (itemId, itemType) - 선택사항</li>
             </ul>
             
             <Title level={5}>SearchSectionConfig 속성</Title>
