@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { AutoComplete, Input } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
-import { Product, Category, SearchItem, GenericSearchResponse } from '@/types/product';
+import { Product, Category, SearchItem, GenericSearchResponse, getStatusDisplayText } from '@/types/product';
 
 // 검색 섹션 설정 인터페이스
 export interface SearchSectionConfig {
@@ -103,7 +103,7 @@ export default function SearchBar({
                   <span className="product-name">{item.name}</span>
                   {item.status && (
                     <span className={`product-status status-${item.status}`}>
-                      {item.status}
+                      {getStatusDisplayText(item.status)}
                     </span>
                   )}
                 </div>
