@@ -22,13 +22,27 @@ export default function SearchBarDemo() {
     checkApi();
   }, []);
 
+  /**
+   * 상품이 선택되었을 때 호출되는 핸들러
+   * SearchBar 컴포넌트의 onProductSelect 콜백으로 전달됨
+   * @param productId - 선택된 상품의 ID (예: "1", "2", "3")
+   */
   const handleProductSelect = (productId: string) => {
-    console.log('Product selected:', productId);
+    console.log('상품 선택됨:', productId);
+    // Next.js router를 사용하여 상품 상세 페이지로 이동
+    // URL: /products/[id] → /products/1, /products/2 등
     router.push(`/products/${productId}`);
   };
 
+  /**
+   * 카테고리가 선택되었을 때 호출되는 핸들러
+   * SearchBar 컴포넌트의 onCategorySelect 콜백으로 전달됨
+   * @param categoryId - 선택된 카테고리의 ID (예: "cat1", "cat2", "cat3")
+   */
   const handleCategorySelect = (categoryId: string) => {
-    console.log('Category selected:', categoryId);
+    console.log('카테고리 선택됨:', categoryId);
+    // Next.js router를 사용하여 카테고리 상세 페이지로 이동
+    // URL: /categories/[id] → /categories/cat1, /categories/cat2 등
     router.push(`/categories/${categoryId}`);
   };
 

@@ -54,10 +54,11 @@ export default function SearchBar({
         const searchResult = await searchAll(value);
         const newOptions: { value: string; label: React.ReactNode }[] = [];
 
-        // Products 섹션
+        // Products 섹션 - 상품 검색 결과 생성
         if (searchResult.productInfo.products.length > 0) {
+          // 1. Products 헤더 추가 (클릭 불가능한 구분선)
           newOptions.push({
-            value: 'products-header',
+            value: 'products-header', // 헤더는 클릭할 수 없도록 특별한 value 사용
             label: (
               <div style={{ 
                 fontWeight: 'bold', 
@@ -71,9 +72,10 @@ export default function SearchBar({
             ),
           });
 
+          // 2. 각 상품을 검색 결과 옵션으로 추가
           searchResult.productInfo.products.forEach((product: Product) => {
             newOptions.push({
-              value: `product-${product.id}`,
+              value: `product-${product.id}`, // 상품 선택 시 식별할 수 있는 고유 value
               label: (
                 <div className="product-item" style={{ paddingLeft: '16px' }}>
                   <span className="product-name">{product.name}</span>
@@ -88,10 +90,11 @@ export default function SearchBar({
           });
         }
 
-        // Categories 섹션
+        // Categories 섹션 - 카테고리 검색 결과 생성
         if (searchResult.categoryInfo.categories.length > 0) {
+          // 1. Categories 헤더 추가 (클릭 불가능한 구분선)
           newOptions.push({
-            value: 'categories-header',
+            value: 'categories-header', // 헤더는 클릭할 수 없도록 특별한 value 사용
             label: (
               <div style={{ 
                 fontWeight: 'bold', 
@@ -106,9 +109,10 @@ export default function SearchBar({
             ),
           });
 
+          // 2. 각 카테고리를 검색 결과 옵션으로 추가
           searchResult.categoryInfo.categories.forEach((category: Category) => {
             newOptions.push({
-              value: `category-${category.id}`,
+              value: `category-${category.id}`, // 카테고리 선택 시 식별할 수 있는 고유 value
               label: (
                 <div className="product-item" style={{ paddingLeft: '16px' }}>
                   <span className="product-name">{category.name}</span>
@@ -131,19 +135,28 @@ export default function SearchBar({
     }, 300);
   }, []);
 
+  /**
+   * 검색 결과에서 항목을 선택했을 때 호출되는 핸들러
+   * @param value - 선택된 항목의 value (예: "product-1", "category-cat1")
+   */
   const handleSelect = useCallback((value: string) => {
-    // 헤더는 클릭할 수 없도록 처리
+    // 1. 헤더 항목은 클릭할 수 없도록 처리
+    // "products-header" 또는 "categories-header"는 단순히 구분선 역할
     if (value === 'products-header' || value === 'categories-header') {
       return;
     }
 
-    // 상품과 카테고리를 구분해서 콜백 호출
+    // 2. 상품과 카테고리를 구분하여 적절한 콜백 함수 호출
     if (value.startsWith('product-')) {
+      // 상품 선택 시: "product-1" → "1"로 ID 추출
       const productId = value.replace('product-', '');
-      onProductSelect?.(productId);
+      console.log('상품 선택됨:', productId);
+      onProductSelect?.(productId); // 부모 컴포넌트의 onProductSelect 콜백 호출
     } else if (value.startsWith('category-')) {
+      // 카테고리 선택 시: "category-cat1" → "cat1"로 ID 추출
       const categoryId = value.replace('category-', '');
-      onCategorySelect?.(categoryId);
+      console.log('카테고리 선택됨:', categoryId);
+      onCategorySelect?.(categoryId); // 부모 컴포넌트의 onCategorySelect 콜백 호출
     }
   }, [onProductSelect, onCategorySelect]);
 
