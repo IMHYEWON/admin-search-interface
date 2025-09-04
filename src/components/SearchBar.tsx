@@ -43,6 +43,7 @@ export default function SearchBar({
 }: SearchBarProps) {
   const [options, setOptions] = useState<{ value: string; label: React.ReactNode }[]>([]);
   const [loading, setLoading] = useState(false);
+  const [inputValue, setInputValue] = useState('');
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   // externalOptions가 있으면 이를 사용
@@ -58,6 +59,9 @@ export default function SearchBar({
   }, []);
 
   const handleSearch = useCallback((value: string) => {
+    // inputValue 업데이트
+    setInputValue(value);
+    
     // 이전 디바운스 타이머 취소
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
@@ -160,11 +164,16 @@ export default function SearchBar({
       // 섹션별 개별 콜백 호출
       const section = sections.find(s => s.itemType === itemType);
       section?.onSelect?.(itemId, itemType);
+      
+      // 선택 후 input 비우기
+      setInputValue('');
+      setOptions([]);
     }
   }, [onItemSelect, sections]);
 
   return (
     <AutoComplete
+      value={inputValue}
       options={displayOptions}
       onSearch={handleSearch}
       onSelect={handleSelect}
