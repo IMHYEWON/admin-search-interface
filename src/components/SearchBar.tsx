@@ -22,12 +22,8 @@ export interface SearchBarProps {
   style?: React.CSSProperties;
   className?: string;
   
-  // 기존 호환성을 위한 props (deprecated)
-  onProductSelect?: (productId: string) => void;
-  onCategorySelect?: (categoryId: string) => void;
-  
-  // 새로운 범용 설정
-  sections?: SearchSectionConfig[]; // 검색 섹션 설정
+  // 필수 설정
+  sections: SearchSectionConfig[]; // 검색 섹션 설정 (필수)
   onItemSelect?: (itemId: string, itemType: string) => void; // 범용 선택 콜백
 }
 
@@ -37,56 +33,13 @@ export default function SearchBar({
   style,
   className,
   
-  // 기존 호환성 props
-  onProductSelect,
-  onCategorySelect,
-  
-  // 새로운 범용 props
+  // 필수 props
   sections,
   onItemSelect
 }: SearchBarProps) {
   const [options, setOptions] = useState<{ value: string; label: React.ReactNode }[]>([]);
   const [loading, setLoading] = useState(false);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
-
-  // 기본 섹션 설정 (기존 호환성을 위해)
-  const defaultSections: SearchSectionConfig[] = [
-    {
-      key: 'products',
-      title: 'Products',
-      color: '#1890ff',
-      itemType: 'product',
-      onSelect: onProductSelect ? (id) => onProductSelect(id) : undefined,
-      renderItem: (item) => (
-        <div className="product-item" style={{ paddingLeft: '16px' }}>
-          <span className="product-name">{item.name}</span>
-          <span className={`product-status status-${item.status}`}>
-            {item.status === 'active' && '활성'}
-            {item.status === 'inactive' && '비활성'}
-            {item.status === 'discontinued' && '단종'}
-          </span>
-        </div>
-      )
-    },
-    {
-      key: 'categories',
-      title: 'Categories',
-      color: '#52c41a',
-      itemType: 'category',
-      onSelect: onCategorySelect ? (id) => onCategorySelect(id) : undefined,
-      renderItem: (item) => (
-        <div className="product-item" style={{ paddingLeft: '16px' }}>
-          <span className="product-name">{item.name}</span>
-          <span className={`product-status status-${item.status}`}>
-            {item.metadata?.productCount || 0}개 상품
-          </span>
-        </div>
-      )
-    }
-  ];
-
-  // 사용할 섹션 설정 결정 (새로운 설정이 있으면 사용, 없으면 기본 설정)
-  const activeSections = sections && sections.length > 0 ? sections : defaultSections;
 
   // 컴포넌트 언마운트 시 디바운스 타이머 정리
   useEffect(() => {
@@ -116,7 +69,7 @@ export default function SearchBar({
         const newOptions: { value: string; label: React.ReactNode }[] = [];
 
         // 범용 섹션 처리 로직
-        activeSections.forEach((section, sectionIndex) => {
+        sections.forEach((section, sectionIndex) => {
           // 섹션별 데이터 추출 (기존 API 응답 구조에 맞춤)
           let sectionData: SearchItem[] = [];
           if (section.key === 'products' && searchResult.productInfo.products.length > 0) {
@@ -183,7 +136,7 @@ export default function SearchBar({
         setLoading(false);
       }
     }, 300);
-  }, [activeSections]);
+  }, [sections]);
 
   /**
    * 검색 결과에서 항목을 선택했을 때 호출되는 핸들러
@@ -201,21 +154,14 @@ export default function SearchBar({
     if (itemType && itemId) {
       console.log(`${itemType} 선택됨:`, itemId);
       
-      // 새로운 범용 콜백 호출
+      // 범용 콜백 호출
       onItemSelect?.(itemId, itemType);
       
-      // 기존 호환성을 위한 개별 콜백 호출
-      if (itemType === 'product') {
-        onProductSelect?.(itemId);
-      } else if (itemType === 'category') {
-        onCategorySelect?.(itemId);
-      }
-      
       // 섹션별 개별 콜백 호출
-      const section = activeSections.find(s => s.itemType === itemType);
+      const section = sections.find(s => s.itemType === itemType);
       section?.onSelect?.(itemId, itemType);
     }
-  }, [onProductSelect, onCategorySelect, onItemSelect, activeSections]);
+  }, [onItemSelect, sections]);
 
   return (
     <AutoComplete
