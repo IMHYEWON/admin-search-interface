@@ -41,7 +41,19 @@ export default function SearchBarDemo() {
             {getStatusDisplayText(item.status)}
           </span>
         </div>
-      )
+      ),
+      dataTransformer: (searchResult: any) => {
+        if (searchResult.productInfo?.products?.length > 0) {
+          return searchResult.productInfo.products.map((product: any) => ({
+            id: product.id,
+            name: product.name,
+            type: 'product',
+            status: product.status,
+            metadata: {}
+          }));
+        }
+        return [];
+      }
     },
     {
       key: 'categories',
@@ -52,14 +64,26 @@ export default function SearchBarDemo() {
         console.log('카테고리 선택됨:', id);
         router.push(`/categories/${id}`);
       },
-      renderItem: (item: any) => (
+      renderItem: (item: SearchItem) => (
         <div className="product-item" style={{ paddingLeft: '16px' }}>
           <span className="product-name">{item.name}</span>
-          <span className={`product-status status-${item.status}`}>
+          <span className={`product-status ${getStatusCssClass(item.status)}`}>
             {item.metadata?.productCount || 0}개 상품
           </span>
         </div>
-      )
+      ),
+      dataTransformer: (searchResult: any) => {
+        if (searchResult.categoryInfo?.categories?.length > 0) {
+          return searchResult.categoryInfo.categories.map((category: any) => ({
+            id: category.id,
+            name: category.name,
+            type: 'category',
+            status: category.status,
+            metadata: { productCount: category.productCount }
+          }));
+        }
+        return [];
+      }
     }
   ];
 
@@ -183,6 +207,18 @@ export default function SearchBarDemo() {
                     onSelect: (id) => {
                       console.log('상품 선택됨:', id);
                       router.push(`/products/${id}`);
+                    },
+                    dataTransformer: (searchResult: any) => {
+                      if (searchResult.productInfo?.products?.length > 0) {
+                        return searchResult.productInfo.products.map((product: any) => ({
+                          id: product.id,
+                          name: product.name,
+                          type: 'product',
+                          status: product.status,
+                          metadata: {}
+                        }));
+                      }
+                      return [];
                     }
                   }
                 ]}
@@ -205,6 +241,18 @@ export default function SearchBarDemo() {
                     onSelect: (id) => {
                       console.log('카테고리 선택됨:', id);
                       router.push(`/categories/${id}`);
+                    },
+                    dataTransformer: (searchResult: any) => {
+                      if (searchResult.categoryInfo?.categories?.length > 0) {
+                        return searchResult.categoryInfo.categories.map((category: any) => ({
+                          id: category.id,
+                          name: category.name,
+                          type: 'category',
+                          status: category.status,
+                          metadata: { productCount: category.productCount }
+                        }));
+                      }
+                      return [];
                     }
                   }
                 ]}
@@ -241,7 +289,22 @@ export default function SearchBarDemo() {
                           {item.metadata?.date || '2024-01-01'}
                         </span>
                       </div>
-                    )
+                    ),
+                    dataTransformer: (searchResult: any) => {
+                      // Mock 데이터 - 실제로는 API에서 이벤트 데이터를 가져와야 함
+                      const mockEvents = [
+                        { id: 'event1', name: '신년 세일', date: '2024-01-01' },
+                        { id: 'event2', name: '여름 대축제', date: '2024-07-15' },
+                        { id: 'event3', name: '블랙프라이데이', date: '2024-11-24' }
+                      ];
+                      return mockEvents.map(event => ({
+                        id: event.id,
+                        name: event.name,
+                        type: 'event',
+                        status: 'active' as any,
+                        metadata: { date: event.date }
+                      }));
+                    }
                   }
                 ]}
                 placeholder="이벤트명을 입력하세요..."
@@ -278,7 +341,22 @@ export default function SearchBarDemo() {
                           {item.metadata?.role || 'User'}
                         </span>
                       </div>
-                    )
+                    ),
+                    dataTransformer: (searchResult: any) => {
+                      // Mock 데이터 - 실제로는 API에서 사용자 데이터를 가져와야 함
+                      const mockUsers = [
+                        { id: 'user1', name: '김철수', role: 'Admin' },
+                        { id: 'user2', name: '이영희', role: 'User' },
+                        { id: 'user3', name: '박민수', role: 'Moderator' }
+                      ];
+                      return mockUsers.map(user => ({
+                        id: user.id,
+                        name: user.name,
+                        type: 'user',
+                        status: 'active' as any,
+                        metadata: { role: user.role }
+                      }));
+                    }
                   }
                 ]}
                 placeholder="사용자명을 입력하세요..."
@@ -312,6 +390,7 @@ export default function SearchBarDemo() {
               <li><Text strong>itemType</Text>: 아이템 타입 (예: &apos;product&apos;, &apos;category&apos;, &apos;event&apos;)</li>
               <li><Text strong>onSelect</Text>: 섹션별 선택 콜백 함수</li>
               <li><Text strong>renderItem</Text>: 커스텀 아이템 렌더링 함수</li>
+              <li><Text strong>dataTransformer</Text>: API 응답을 SearchItem[]로 변환하는 함수 - <Text type="danger">필수</Text></li>
             </ul>
           </Card>
         </Card>

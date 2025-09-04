@@ -14,6 +14,7 @@ export interface SearchSectionConfig {
   itemType: string; // 아이템 타입 (예: 'product', 'category', 'event')
   onSelect?: (itemId: string, itemType: string) => void; // 선택 시 콜백
   renderItem?: (item: SearchItem) => React.ReactNode; // 커스텀 아이템 렌더링
+  dataTransformer?: (searchResult: any) => SearchItem[]; // API 응답을 SearchItem[]로 변환하는 함수
 }
 
 export interface SearchBarProps {
@@ -70,24 +71,10 @@ export default function SearchBar({
 
         // 범용 섹션 처리 로직
         sections.forEach((section, sectionIndex) => {
-          // 섹션별 데이터 추출 (기존 API 응답 구조에 맞춤)
+          // 섹션별 데이터 추출 (dataTransformer 함수 사용)
           let sectionData: SearchItem[] = [];
-          if (section.key === 'products' && searchResult.productInfo.products.length > 0) {
-            sectionData = searchResult.productInfo.products.map(product => ({
-              id: product.id,
-              name: product.name,
-              type: 'product',
-              status: product.status,
-              metadata: {}
-            }));
-          } else if (section.key === 'categories' && searchResult.categoryInfo.categories.length > 0) {
-            sectionData = searchResult.categoryInfo.categories.map(category => ({
-              id: category.id,
-              name: category.name,
-              type: 'category',
-              status: category.status,
-              metadata: { productCount: category.productCount }
-            }));
+          if (section.dataTransformer) {
+            sectionData = section.dataTransformer(searchResult);
           }
 
           // 섹션에 데이터가 있을 때만 렌더링
