@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Header from '@/components/Header';
 import { Category, Product } from '@/types/product';
-import { mockCategories, mockProducts } from '@/lib/mockData';
+import { getCategoryById, getProductsByCategory } from '@/lib/api';
 
 const { Content } = Layout;
 const { Title, Paragraph } = Typography;
@@ -24,23 +24,26 @@ export default function CategoryDetailPage({ params }: CategoryDetailPageProps) 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 실제 API 호출을 시뮬레이션
     const fetchCategory = async () => {
       setLoading(true);
-      await new Promise(resolve => setTimeout(resolve, 500)); // API 지연 시뮬레이션
-      
-      const foundCategory = mockCategories.find(c => c.id === params.id);
-      if (foundCategory) {
-        setCategory(foundCategory);
-        // 해당 카테고리의 상품들을 필터링 (실제로는 API에서 가져올 데이터)
-        const products = mockProducts.filter(product => 
-          // 간단한 카테고리 매칭 로직 (실제로는 더 정교한 로직 필요)
-          product.name.toLowerCase().includes(foundCategory.name.toLowerCase()) ||
-          foundCategory.name.toLowerCase().includes(product.name.toLowerCase())
-        );
-        setCategoryProducts(products.slice(0, 10)); // 최대 10개만 표시
+      try {
+        const foundCategory = await getCategoryById(params.id);
+        if (foundCategory) {
+          setCategory(foundCategory);
+          // 해당 카테고리의 상품들을 API에서 가져오기
+          const products = await getProductsByCategory(params.id);
+          setCategoryProducts(products.slice(0, 10)); // 최대 10개만 표시
+        } else {
+          setCategory(null);
+          setCategoryProducts([]);
+        }
+      } catch (error) {
+        console.error('카테고리 조회 중 오류가 발생했습니다:', error);
+        setCategory(null);
+        setCategoryProducts([]);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchCategory();

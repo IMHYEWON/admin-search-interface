@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { AutoComplete, Input } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { Product, Category } from '@/types/product';
-import { searchAll } from '@/lib/mockData';
+import { searchAll } from '@/lib/api';
 
 export interface SearchBarProps {
   placeholder?: string;
@@ -25,92 +25,110 @@ export default function SearchBar({
 }: SearchBarProps) {
   const [options, setOptions] = useState<{ value: string; label: React.ReactNode }[]>([]);
   const [loading, setLoading] = useState(false);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleSearch = useCallback(async (value: string) => {
+  // 컴포넌트 언마운트 시 디바운스 타이머 정리
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, []);
+
+  const handleSearch = useCallback((value: string) => {
+    // 이전 디바운스 타이머 취소
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
     if (!value.trim()) {
       setOptions([]);
       return;
     }
 
-    setLoading(true);
-    try {
-      const searchResult = await searchAll(value);
-      const newOptions: { value: string; label: React.ReactNode }[] = [];
+    // 300ms 디바운스 적용
+    debounceRef.current = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const searchResult = await searchAll(value);
+        const newOptions: { value: string; label: React.ReactNode }[] = [];
 
-      // Products 섹션
-      if (searchResult.productInfo.products.length > 0) {
-        newOptions.push({
-          value: 'products-header',
-          label: (
-            <div style={{ 
-              fontWeight: 'bold', 
-              color: '#1890ff', 
-              padding: '8px 0',
-              borderBottom: '1px solid #f0f0f0',
-              marginBottom: '4px'
-            }}>
-              Products
-            </div>
-          ),
-        });
-
-        searchResult.productInfo.products.forEach((product: Product) => {
+        // Products 섹션
+        if (searchResult.productInfo.products.length > 0) {
           newOptions.push({
-            value: `product-${product.id}`,
+            value: 'products-header',
             label: (
-              <div className="product-item" style={{ paddingLeft: '16px' }}>
-                <span className="product-name">{product.name}</span>
-                <span className={`product-status status-${product.status}`}>
-                  {product.status === 'active' && '활성'}
-                  {product.status === 'inactive' && '비활성'}
-                  {product.status === 'discontinued' && '단종'}
-                </span>
+              <div style={{ 
+                fontWeight: 'bold', 
+                color: '#1890ff', 
+                padding: '8px 0',
+                borderBottom: '1px solid #f0f0f0',
+                marginBottom: '4px'
+              }}>
+                Products
               </div>
             ),
           });
-        });
-      }
 
-      // Categories 섹션
-      if (searchResult.categoryInfo.categories.length > 0) {
-        newOptions.push({
-          value: 'categories-header',
-          label: (
-            <div style={{ 
-              fontWeight: 'bold', 
-              color: '#52c41a', 
-              padding: '8px 0',
-              borderBottom: '1px solid #f0f0f0',
-              marginBottom: '4px',
-              marginTop: searchResult.productInfo.products.length > 0 ? '8px' : '0'
-            }}>
-              Categories
-            </div>
-          ),
-        });
+          searchResult.productInfo.products.forEach((product: Product) => {
+            newOptions.push({
+              value: `product-${product.id}`,
+              label: (
+                <div className="product-item" style={{ paddingLeft: '16px' }}>
+                  <span className="product-name">{product.name}</span>
+                  <span className={`product-status status-${product.status}`}>
+                    {product.status === 'active' && '활성'}
+                    {product.status === 'inactive' && '비활성'}
+                    {product.status === 'discontinued' && '단종'}
+                  </span>
+                </div>
+              ),
+            });
+          });
+        }
 
-        searchResult.categoryInfo.categories.forEach((category: Category) => {
+        // Categories 섹션
+        if (searchResult.categoryInfo.categories.length > 0) {
           newOptions.push({
-            value: `category-${category.id}`,
+            value: 'categories-header',
             label: (
-              <div className="product-item" style={{ paddingLeft: '16px' }}>
-                <span className="product-name">{category.name}</span>
-                <span className={`product-status status-${category.status}`}>
-                  {category.productCount}개 상품
-                </span>
+              <div style={{ 
+                fontWeight: 'bold', 
+                color: '#52c41a', 
+                padding: '8px 0',
+                borderBottom: '1px solid #f0f0f0',
+                marginBottom: '4px',
+                marginTop: searchResult.productInfo.products.length > 0 ? '8px' : '0'
+              }}>
+                Categories
               </div>
             ),
           });
-        });
-      }
 
-      setOptions(newOptions);
-    } catch (error) {
-      console.error('검색 중 오류가 발생했습니다:', error);
-      setOptions([]);
-    } finally {
-      setLoading(false);
-    }
+          searchResult.categoryInfo.categories.forEach((category: Category) => {
+            newOptions.push({
+              value: `category-${category.id}`,
+              label: (
+                <div className="product-item" style={{ paddingLeft: '16px' }}>
+                  <span className="product-name">{category.name}</span>
+                  <span className={`product-status status-${category.status}`}>
+                    {category.productCount}개 상품
+                  </span>
+                </div>
+              ),
+            });
+          });
+        }
+
+        setOptions(newOptions);
+      } catch (error) {
+        console.error('검색 중 오류가 발생했습니다:', error);
+        setOptions([]);
+      } finally {
+        setLoading(false);
+      }
+    }, 300);
   }, []);
 
   const handleSelect = useCallback((value: string) => {
