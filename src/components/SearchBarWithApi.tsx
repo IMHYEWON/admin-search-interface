@@ -121,18 +121,29 @@ export default function SearchBarWithApi({ sections, ...props }: SearchBarWithAp
           label: section.renderItem ? section.renderItem(item) : (
             <div className="product-item" style={{ 
               paddingLeft: '16px', 
+              paddingRight: '24px',
               display: 'flex', 
               justifyContent: 'space-between', 
               alignItems: 'center',
-              minHeight: '32px'
+              minHeight: '32px',
+              width: '100%',
+              boxSizing: 'border-box'
             }}>
-              <span className="product-name" style={{ flex: 1, marginRight: '8px' }}>{item.name}</span>
+              <span className="product-name" style={{ 
+                flex: 1, 
+                marginRight: '16px',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap'
+              }}>{item.name}</span>
               {item.status && (
                 <span className={`product-status ${getStatusCssClass(item.status)}`} style={{
                   whiteSpace: 'nowrap',
                   fontSize: '12px',
                   padding: '2px 6px',
-                  borderRadius: '4px'
+                  borderRadius: '4px',
+                  flexShrink: 0,
+                  minWidth: 'fit-content'
                 }}>
                   {getStatusDisplayText(item.status)}
                 </span>
