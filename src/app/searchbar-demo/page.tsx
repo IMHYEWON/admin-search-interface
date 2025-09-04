@@ -22,13 +22,27 @@ export default function SearchBarDemo() {
     checkApi();
   }, []);
 
+  /**
+   * 상품이 선택되었을 때 호출되는 핸들러
+   * SearchBar 컴포넌트의 onProductSelect 콜백으로 전달됨
+   * @param productId - 선택된 상품의 ID (예: "1", "2", "3")
+   */
   const handleProductSelect = (productId: string) => {
-    console.log('Product selected:', productId);
+    console.log('상품 선택됨:', productId);
+    // Next.js router를 사용하여 상품 상세 페이지로 이동
+    // URL: /products/[id] → /products/1, /products/2 등
     router.push(`/products/${productId}`);
   };
 
+  /**
+   * 카테고리가 선택되었을 때 호출되는 핸들러
+   * SearchBar 컴포넌트의 onCategorySelect 콜백으로 전달됨
+   * @param categoryId - 선택된 카테고리의 ID (예: "cat1", "cat2", "cat3")
+   */
   const handleCategorySelect = (categoryId: string) => {
-    console.log('Category selected:', categoryId);
+    console.log('카테고리 선택됨:', categoryId);
+    // Next.js router를 사용하여 카테고리 상세 페이지로 이동
+    // URL: /categories/[id] → /categories/cat1, /categories/cat2 등
     router.push(`/categories/${categoryId}`);
   };
 
@@ -122,15 +136,162 @@ export default function SearchBarDemo() {
 
           <Divider />
 
+          <Title level={3}>🎯 단일 섹션 검색 예시</Title>
+          <Paragraph style={{ marginBottom: '24px' }}>
+            새로운 범용 SearchBar를 사용하여 특정 섹션만 검색하는 예시들입니다.
+          </Paragraph>
+
+          <Space direction="vertical" size="large" style={{ width: '100%' }}>
+            <div>
+              <Title level={4}>상품만 검색</Title>
+              <Paragraph>
+                <Text code>{'<SearchBar sections={[productSection]} />'}</Text> - 상품만 검색하는 SearchBar
+              </Paragraph>
+              <SearchBar 
+                sections={[
+                  {
+                    key: 'products',
+                    title: 'Products',
+                    color: '#1890ff',
+                    itemType: 'product',
+                    onSelect: (id) => {
+                      console.log('상품 선택됨:', id);
+                      router.push(`/products/${id}`);
+                    }
+                  }
+                ]}
+                placeholder="상품명을 입력하세요..."
+              />
+            </div>
+
+            <div>
+              <Title level={4}>카테고리만 검색</Title>
+              <Paragraph>
+                <Text code>{'<SearchBar sections={[categorySection]} />'}</Text> - 카테고리만 검색하는 SearchBar
+              </Paragraph>
+              <SearchBar 
+                sections={[
+                  {
+                    key: 'categories',
+                    title: 'Categories',
+                    color: '#52c41a',
+                    itemType: 'category',
+                    onSelect: (id) => {
+                      console.log('카테고리 선택됨:', id);
+                      router.push(`/categories/${id}`);
+                    }
+                  }
+                ]}
+                placeholder="카테고리명을 입력하세요..."
+              />
+            </div>
+
+            <div>
+              <Title level={4}>이벤트 검색 (예시)</Title>
+              <Paragraph>
+                <Text code>{'<SearchBar sections={[eventSection]} />'}</Text> - 이벤트만 검색하는 SearchBar (Mock 데이터)
+              </Paragraph>
+              <SearchBar 
+                sections={[
+                  {
+                    key: 'events',
+                    title: 'Events',
+                    color: '#722ed1',
+                    itemType: 'event',
+                    onSelect: (id) => {
+                      console.log('이벤트 선택됨:', id);
+                      alert(`이벤트 ${id} 선택됨!`);
+                    },
+                    renderItem: (item) => (
+                      <div className="product-item" style={{ paddingLeft: '16px' }}>
+                        <span className="product-name">{item.name}</span>
+                        <span className="product-status" style={{ 
+                          fontSize: '12px',
+                          padding: '2px 8px',
+                          borderRadius: '4px',
+                          backgroundColor: '#f0f0f0',
+                          color: '#666'
+                        }}>
+                          {item.metadata?.date || '2024-01-01'}
+                        </span>
+                      </div>
+                    )
+                  }
+                ]}
+                placeholder="이벤트명을 입력하세요..."
+              />
+            </div>
+
+            <div>
+              <Title level={4}>사용자 검색 (예시)</Title>
+              <Paragraph>
+                <Text code>{'<SearchBar sections={[userSection]} />'}</Text> - 사용자만 검색하는 SearchBar (Mock 데이터)
+              </Paragraph>
+              <SearchBar 
+                sections={[
+                  {
+                    key: 'users',
+                    title: 'Users',
+                    color: '#fa8c16',
+                    itemType: 'user',
+                    onSelect: (id) => {
+                      console.log('사용자 선택됨:', id);
+                      alert(`사용자 ${id} 선택됨!`);
+                    },
+                    renderItem: (item) => (
+                      <div className="product-item" style={{ paddingLeft: '16px' }}>
+                        <span className="product-name">{item.name}</span>
+                        <span className="product-status" style={{ 
+                          fontSize: '12px',
+                          padding: '2px 8px',
+                          borderRadius: '4px',
+                          backgroundColor: '#fff2e8',
+                          color: '#fa8c16',
+                          border: '1px solid #ffd591'
+                        }}>
+                          {item.metadata?.role || 'User'}
+                        </span>
+                      </div>
+                    )
+                  }
+                ]}
+                placeholder="사용자명을 입력하세요..."
+              />
+            </div>
+          </Space>
+
+          <Divider />
+
           <Title level={4}>Props 설명</Title>
           <Card size="small">
+            <Title level={5}>기본 Props</Title>
             <ul>
               <li><Text strong>placeholder</Text>: 검색바에 표시될 플레이스홀더 텍스트</li>
-              <li><Text strong>size</Text>: 검색바 크기 ('small' | 'middle' | 'large')</li>
+              <li><Text strong>size</Text>: 검색바 크기 (&apos;small&apos; | &apos;middle&apos; | &apos;large&apos;)</li>
               <li><Text strong>style</Text>: 커스텀 CSS 스타일</li>
+              <li><Text strong>className</Text>: CSS 클래스명</li>
+            </ul>
+            
+            <Title level={5}>기존 호환성 Props (Deprecated)</Title>
+            <ul>
               <li><Text strong>onProductSelect</Text>: 상품 선택 시 호출될 콜백 함수</li>
               <li><Text strong>onCategorySelect</Text>: 카테고리 선택 시 호출될 콜백 함수</li>
-              <li><Text strong>className</Text>: CSS 클래스명</li>
+            </ul>
+            
+            <Title level={5}>새로운 범용 Props</Title>
+            <ul>
+              <li><Text strong>sections</Text>: 검색 섹션 설정 배열 (SearchSectionConfig[])</li>
+              <li><Text strong>onItemSelect</Text>: 범용 아이템 선택 콜백 (itemId, itemType)</li>
+            </ul>
+            
+            <Title level={5}>SearchSectionConfig 속성</Title>
+            <ul>
+              <li><Text strong>key</Text>: 섹션 고유 키 (예: &apos;products&apos;, &apos;categories&apos;)</li>
+              <li><Text strong>title</Text>: 섹션 제목 (예: &apos;Products&apos;, &apos;Categories&apos;)</li>
+              <li><Text strong>color</Text>: 섹션 색상 (예: &apos;#1890ff&apos;, &apos;#52c41a&apos;)</li>
+              <li><Text strong>itemType</Text>: 아이템 타입 (예: &apos;product&apos;, &apos;category&apos;, &apos;event&apos;)</li>
+              <li><Text strong>onSelect</Text>: 섹션별 선택 콜백 함수</li>
+              <li><Text strong>renderItem</Text>: 커스텀 아이템 렌더링 함수</li>
             </ul>
           </Card>
         </Card>
